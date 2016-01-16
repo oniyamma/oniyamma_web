@@ -14,7 +14,6 @@
 $ git clone xxxx
 $ cd xxxx
 $ npm install
-$ bower install
 $ node ./db/seeds.js
 $ node-dev app.js
 ```
