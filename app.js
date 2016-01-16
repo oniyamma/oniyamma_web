@@ -6,10 +6,16 @@ var moment     = require('moment');
 var request    = require('request');
 
 /////////////////////////
-// Database
+// Parameters
 /////////////////////////
 
 var dbname = 'oniyanma';
+var port = 3000;
+
+/////////////////////////
+// Database
+/////////////////////////
+
 var users; 
 var logs;
 
@@ -101,7 +107,7 @@ app.get('/api/v1/weather', function(req, res){
 });
 
 // Launch Web Server
-var webServer = app.listen(3000, function () {
+var webServer = app.listen(port, function () {
   console.log('\033[96m Web server running\033[39m');
   var host = webServer.address().address;
   var port = webServer.address().port;
