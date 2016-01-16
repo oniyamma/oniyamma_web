@@ -9,7 +9,7 @@ var request    = require('request');
 // Parameters
 /////////////////////////
 
-var dbname = 'oniyanma';
+var dbname = 'oniyamma';
 var port = 3000;
 
 /////////////////////////

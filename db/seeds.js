@@ -1,7 +1,7 @@
 var mongodb    = require('mongodb');
 
 // Clean adn set seeds
-mongodb.MongoClient.connect("mongodb://localhost:27017/oniyanma", function(err, database) {
+mongodb.MongoClient.connect("mongodb://localhost:27017/oniyamma", function(err, database) {
   var users = database.collection("users");
   var logs  = database.collection("logs");  
   // Clean collections
