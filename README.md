@@ -8,7 +8,15 @@
 
 ## 概要図
 
-## セットアップ
+## セットアップ(For Mac)
+
+```
+$ brew update
+$ brew install mongodb
+$ ln -s /usr/local/opt/mongodb/*.plist ~/Library/LaunchAgents/
+$ launchctl load -w ~/Library/LaunchAgents/homebrew.mxcl.mongodb.plist
+$ mongod
+```
 
 ```
 $ git clone xxxx
