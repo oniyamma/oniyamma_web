@@ -92,8 +92,18 @@ app.get('/api/v1/timeline', function(req, res) {
  * }
  */
 app.get('/api/v1/add_log', function(req, res) {
-  var user_id = req.query.user_id
-  saveLog({ user_id: user_id, type: "go"});
+  saveLog({ 
+    type:              req.query.type,
+    user_id:           req.query.user_id, 
+    file_path:         req.query.file_path,
+    kiss:              parseInt(req.query.kiss),
+    smile:             parseInt(req.query.smile),
+    mouse_open:        parseInt(req.query.mouse_open),
+    eyes_up:           parseInt(req.query.eyes_up),
+    eyes_down:         parseInt(req.query.eyes_down),
+    eyes_closed_left:  parseInt(req.query.eyes_closed_left),
+    eyes_closed_right: parseInt(req.query.eyes_closed_right)
+  });
   res.send({
     'result': true
   });
