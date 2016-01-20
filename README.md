@@ -13,6 +13,8 @@
 ```
 $ brew update
 $ brew install mongodb
+$ brew install pkgconfig | brew update pkgconfig
+$ brew install cairo
 $ ln -s /usr/local/opt/mongodb/*.plist ~/Library/LaunchAgents/
 $ launchctl load -w ~/Library/LaunchAgents/homebrew.mxcl.mongodb.plist
 $ mongod

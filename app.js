@@ -10,6 +10,8 @@ var path       = require('path');
 var uuid       = require('node-uuid');
 var config     = require('./config');
 var model      = require('./model');
+var GIFEncoder = require('gifencoder');
+var Canvas     = require('canvas');
 
 /////////////////////////
 // Parameters
@@ -94,6 +96,7 @@ app.get('/api/v1/users/:id', function(req, res) {
  * ]
  */
 app.get('/api/v1/timeline', function(req, res) {
+  console.log("timeline" + getNow());
   Log
     .find()
     .sort({ 'created_at': -1 })
@@ -135,8 +138,44 @@ app.get('/api/v1/add_log', function(req, res) {
 /**
  * 「今日の天気は？」
  */
-app.get('/api/v1/weather', function(req, res){
+app.get('/api/v1/weather', function(req, res) {
   res.send("{ 'status': 'great' }");
+});
+
+/**
+ * 指定ユーザーのアニメーションGifを生成する
+ */
+app.get('/api/v1/generate_user_history/:id', function(req, res) {
+  var id = req.params.id;
+  logs = Log
+    .find({ 'created_by': id})
+    .sort({ 'created_at': -1 })
+    .exec(function(err, logs) {
+      if(err) throw new Error(err);
+      var encoder = new GIFEncoder(320, 320);
+      var file_name = uuid.v4();
+      encoder.createReadStream().pipe(fs.createWriteStream('./upload/' + file_name));
+      encoder.start();
+      encoder.setRepeat(0);
+      encoder.setDelay(500);
+      encoder.setQuality(10);
+      logs.forEach(function(log) {
+        fs.readFile('./upload/' + log.image_file_name, function(err, image_file){
+          if (err) throw err;
+          var canvas = new Canvas(320, 320);
+          var ctx = canvas.getContext('2d');
+          img = new Canvas.Image;
+          img.src = image_file;
+          ctx.drawImage(img, 0, 0, img.width, img.height);
+          encoder.addFrame(ctx);
+        });
+      });
+      setTimeout(function() {
+        encoder.finish();
+        res.send({ file_name: file_name });
+      }, 1000);
+      
+    });
 });
 
 // Launch Web Server
