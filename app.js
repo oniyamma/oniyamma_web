@@ -2,44 +2,48 @@
 var sys        = require('sys');
 var express    = require('express');
 var mongodb    = require('mongodb');
+var mongoose   = require('mongoose');
 var moment     = require('moment');
 var request    = require('request');
+var fs         = require('fs');
+var path       = require('path');
+var uuid       = require('node-uuid');
+var config     = require('./config');
+var model      = require('./model');
 
 /////////////////////////
 // Parameters
 /////////////////////////
 
-var dbname = 'oniyamma';
 var port = 3000;
 
 /////////////////////////
 // Database
 /////////////////////////
 
-var users; 
-var logs;
+// Connect mongodb
+mongoose.connect('mongodb://localhost:27017/' + config.dbname);
 
-// Connect to mongodb
-mongodb.MongoClient.connect("mongodb://localhost:27017/" + dbname, function(err, database) {
-  users = database.collection("users");
-  logs  = database.collection("logs");
-});
+var User = model.User
+var Log  = model.Log
 
 /////////////////////////
 // Web server
 /////////////////////////
 var app = express();
-app.use(express.static('public'));
+app.use('/upload', express.static('upload'));
 
 // Generate `now` formated datetime string
 function getNow() {
   return moment().format('YYYY/MM/DD HH:mm:ss');
 }
 
-// Save log method
-function saveLog(log, callback) {
-  log.timestamp = getNow();
-  logs.save(log);
+// Get user
+function getUserById(id, callback) {
+  users.findOne({ _id: id }, function(err, item) {
+    console.log(arguments);
+    if (callback) callback(item);
+  });
 }
 
 /////////////////////////
@@ -57,8 +61,23 @@ function saveLog(log, callback) {
  * ]
  */
 app.get('/api/v1/users', function(req, res) {
-  users.find().toArray(function(err, items) {
-    res.send(items);
+  User.find(function(err, users) {
+    res.send(users);
+  });
+});
+
+/**
+ * Get user
+ * @return
+ * { 
+ *   '_id': Object Id, 
+ *   'name': User's name
+ * }
+ */
+app.get('/api/v1/users/:id', function(req, res) {
+  var id = req.params.id;
+  User.findOne({ '_id': id }, function(err, user) {
+    res.send(user);
   });
 });
 
@@ -75,9 +94,14 @@ app.get('/api/v1/users', function(req, res) {
  * ]
  */
 app.get('/api/v1/timeline', function(req, res) {
-  logs.find().sort({ 'timestamp': -1 }).toArray(function(err, items) {
-    res.send(items);
-  });
+  Log
+    .find()
+    .sort({ 'created_at': -1 })
+    .populate('created_by')
+    .exec(function(err, logs) {
+      if(err) throw new Error(err);
+      res.send(logs);
+    });
 });
 
 /**
@@ -92,21 +116,20 @@ app.get('/api/v1/timeline', function(req, res) {
  * }
  */
 app.get('/api/v1/add_log', function(req, res) {
-  saveLog({ 
-    type:              req.query.type,
-    user_id:           req.query.user_id, 
-    file_path:         req.query.file_path,
-    kiss:              parseInt(req.query.kiss),
-    smile:             parseInt(req.query.smile),
-    mouse_open:        parseInt(req.query.mouse_open),
-    eyes_up:           parseInt(req.query.eyes_up),
-    eyes_down:         parseInt(req.query.eyes_down),
-    eyes_closed_left:  parseInt(req.query.eyes_closed_left),
-    eyes_closed_right: parseInt(req.query.eyes_closed_right)
+  var file_path = req.query.file_path;
+  var ext = path.extname(file_path);
+  var file_name = uuid.v4() + ext;
+  var r = fs.createReadStream(file_path);
+  var w = fs.createWriteStream('./upload/' + file_name);
+  r.pipe(w);
+  var log = new Log({
+    type: req.query.type,
+    image_file_name: file_name,
+    created_by: req.query.user_id,
+    created_at: getNow()
   });
-  res.send({
-    'result': true
-  });
+  log.save();
+  res.send({ 'result': true });
 });
 
 /**

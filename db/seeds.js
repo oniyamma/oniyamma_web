@@ -1,16 +1,14 @@
-var mongodb    = require('mongodb');
-
-// Clean adn set seeds
-mongodb.MongoClient.connect("mongodb://localhost:27017/oniyamma", function(err, database) {
-  var users = database.collection("users");
-  var logs  = database.collection("logs");  
-  // Clean collections
-  users.drop();
-  logs.drop();
-  // Set seeds values
-  users.save({ 'name': 'Taro' });
-  users.save({ 'name': 'Jiro' });
-  users.save({ 'name': 'Saburo' });
-  console.log('Finished.');
-  process.exit();
-});
+var mongoose = require('mongoose');
+var config   = require('../config');
+var User = require('../model').User;
+var Log  = require('../model').Log;
+// Connect mongodb
+mongoose.connect('mongodb://localhost:27017/' + config.dbname);
+// Clean all collections
+[User, Log].forEach(function(m) { m.remove({}, function() {}); })
+// Set seeds values
+new User({ 'name': '後藤 歩',  'image_file_name': 'goto.jpg' }).save();
+new User({ 'name': '前本 知志', 'image_file_name': 'maemoto.jpg' }).save();
+new User({ 'name': '石田 陽太', 'image_file_name': 'ishida.jpg' }).save();
+console.log('Finished.');
+mongoose.disconnect();
