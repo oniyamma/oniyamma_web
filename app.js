@@ -10,6 +10,7 @@ var path       = require('path');
 var uuid       = require('node-uuid');
 var config     = require('./config');
 var model      = require('./model');
+var multiparty = require('multiparty');
 var GIFEncoder = require('gifencoder');
 var Canvas     = require('canvas');
 
@@ -118,21 +119,26 @@ app.get('/api/v1/timeline', function(req, res) {
  *   'result': true|false
  * }
  */
-app.get('/api/v1/add_log', function(req, res) {
-  var file_path = req.query.file_path;
-  var ext = path.extname(file_path);
-  var file_name = uuid.v4() + ext;
-  var r = fs.createReadStream(file_path);
-  var w = fs.createWriteStream('./upload/' + file_name);
-  r.pipe(w);
-  var log = new Log({
-    type: req.query.type,
-    image_file_name: file_name,
-    created_by: req.query.user_id,
-    created_at: getNow()
+app.post('/api/v1/add_log', function(req, res) {
+  var form = new multiparty.Form();
+  form.parse(req, function(err, fields, files) {
+    var user_id = fields.user_id[0];
+    var type = fields.type[0];
+    var file_path = files.image_file[0].path;
+    var ext = path.extname(file_path);
+    var file_name = uuid.v4() + ext;
+    var r = fs.createReadStream(file_path);
+    var w = fs.createWriteStream('./upload/' + file_name);
+    r.pipe(w);
+    var log = new Log({
+      type: type,
+      image_file_name: file_name,
+      created_by: user_id,
+      created_at: getNow()
+    });
+    log.save();
+    res.send({ 'result': true });
   });
-  log.save();
-  res.send({ 'result': true });
 });
 
 /**
