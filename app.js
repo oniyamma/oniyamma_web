@@ -13,6 +13,7 @@ var model      = require('./model');
 var multiparty = require('multiparty');
 var GIFEncoder = require('gifencoder');
 var Canvas     = require('canvas');
+var hue        = require('./hue').Hue;
 
 /////////////////////////
 // Parameters
@@ -82,6 +83,14 @@ app.get('/api/v1/users/:id', function(req, res) {
   User.findOne({ '_id': id }, function(err, user) {
     res.send(user);
   });
+});
+
+/**
+ * 感情を送る
+ */
+app.get('/api/v1/apply_emotion', function(req, res) {
+  hue.apply_emotion(req.query);
+  res.send("{ 'status': 'great' }");
 });
 
 /**
